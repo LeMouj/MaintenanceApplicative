@@ -87,13 +87,13 @@ public class Game implements IGame {
    }
 
    private void askQuestion() {
-      if (currentCategory() == "Pop")
+      if (currentCategory().equals("Pop"))
          System.out.println(popQuestions.removeFirst());
-      if (currentCategory() == "Science")
+      if (currentCategory().equals("Science"))
          System.out.println(scienceQuestions.removeFirst());
-      if (currentCategory() == "Sports")
+      if (currentCategory().equals("Sports"))
          System.out.println(sportsQuestions.removeFirst());
-      if (currentCategory() == "Rock")
+      if (currentCategory().equals("Rock"))
          System.out.println(rockQuestions.removeFirst());
    }
 
@@ -114,40 +114,30 @@ public class Game implements IGame {
    public boolean handleCorrectAnswer() {
       if (inPenaltyBox[currentPlayer]) {
          if (isGettingOutOfPenaltyBox) {
-            System.out.println("Answer was corrent!!!!");
-            purses[currentPlayer]++;
-            System.out.println(players.get(currentPlayer)
-                               + " now has "
-                               + purses[currentPlayer]
-                               + " Gold Coins.");
-
-            boolean winner = didPlayerWin();
-            currentPlayer++;
-            if (currentPlayer == players.size()) currentPlayer = 0;
-
-            return winner;
+            return correctAnswer();
          } else {
             currentPlayer++;
             if (currentPlayer == players.size()) currentPlayer = 0;
             return true;
          }
-
-
       } else {
-
-         System.out.println("Answer was corrent!!!!");
-         purses[currentPlayer]++;
-         System.out.println(players.get(currentPlayer)
-                            + " now has "
-                            + purses[currentPlayer]
-                            + " Gold Coins.");
-
-         boolean winner = didPlayerWin();
-         currentPlayer++;
-         if (currentPlayer == players.size()) currentPlayer = 0;
-
-         return winner;
+         return correctAnswer();
       }
+   }
+
+   private boolean correctAnswer() {
+      System.out.println("Answer was correct!!!!");
+      purses[currentPlayer]++;
+      System.out.println(players.get(currentPlayer)
+                         + " now has "
+                         + purses[currentPlayer]
+                         + " Gold Coins.");
+
+      boolean winner = didPlayerWin();
+      currentPlayer++;
+      if (currentPlayer == players.size()) currentPlayer = 0;
+
+      return winner;
    }
 
    public boolean wrongAnswer() {
