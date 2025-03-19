@@ -3,6 +3,8 @@ package org.example.Models;
 import org.example.ValueObject.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
 
 public abstract class Event {
     protected final IdEvenement idEvenement;
