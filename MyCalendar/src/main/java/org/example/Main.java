@@ -1,390 +1,659 @@
 package org.example;
 
+import org.example.Models.Event;
 import org.example.Service.CalendarManager;
 import org.example.Models.*;
 import org.example.ValueObject.*;
 
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.*;
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Locale;
-import java.util.Scanner;
 import java.util.UUID;
 
 public class Main {
 
-    private static CalendarManager calendar = new CalendarManager();
-    private static Scanner scanner = new Scanner(System.in);
+    private static final CalendarManager calendar = new CalendarManager();
     private static String utilisateur = null;
-    private static String[] utilisateurs = new String[99];
-    private static String[] motsDePasses = new String[99];
+    private static final String[] utilisateurs = new String[99];
+    private static final String[] motsDePasses = new String[99];
     private static int nbUtilisateurs = 0;
 
     public static void main(String[] args) {
-        while (true) {
-            if (utilisateur == null) {
-                afficherLogo();
-                afficherMenuConnexion();
-            }
+        SwingUtilities.invokeLater(() -> {
+            JFrame frame = new JFrame("Gestionnaire d'Événements");
+            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+            frame.setSize(600, 400);
 
-            while (utilisateur != null) {
-                afficherMenuGestionnaire();
-                String choix = scanner.nextLine();
-                switch (choix) {
-                    case "1":
-                        afficherEvenements();
-                        break;
-                    case "2":
-                        ajouterRdvPersonnel();
-                        break;
-                    case "3":
-                        ajouterReunion();
-                        break;
-                    case "4":
-                        ajouterEvenementPeriodique();
-                        break;
-                    case "5":
-                        ajouterAnniversaire();
-                        break;
-                    case "6":
-                        deconnecterUtilisateur();
-                        break;
-                    case "7":
-                        supprimerEvenement();
-                        break;
-                    default:
-                        System.out.println("Option invalide.");
-                }
-            }
-        }
+            JPanel panel = new JPanel();
+            panel.setLayout(new CardLayout());
+
+            // Créer les panneaux pour chaque partie
+            JPanel loginPanel = createLoginPanel(panel, frame);
+            JPanel menuPanel = createMenuPanel(panel);
+
+            panel.add(loginPanel, "Login");
+            panel.add(menuPanel, "Menu");
+
+            frame.add(panel);
+            frame.setVisible(true);
+        });
     }
 
-    // Méthodes pour les menus
+    // Panneau de connexion
+    private static JPanel createLoginPanel(JPanel mainPanel, JFrame frame) {
+        JPanel loginPanel = new JPanel();
+        loginPanel.setLayout(new BorderLayout());
 
-    private static void afficherLogo() {
-        System.out.println("  _____         _                   _                __  __");
-        System.out.println(" / ____|       | |                 | |              |  \\/  |");
-        System.out.println("| |       __ _ | |  ___  _ __    __| |  __ _  _ __  | \\  / |  __ _  _ __    __ _   __ _   ___  _ __");
-        System.out.println("| |      / _` || | / _ \\| '_ \\  / _` | / _` || '__| | |\\/| | / _` || '_ \\  / _` | / _` | / _ \\| '__|");
-        System.out.println("| |____ | (_| || ||  __/| | | || (_| || (_| || |    | |  | || (_| || | | || (_| || (_| ||  __/| |");
-        System.out.println(" \\_____| \\__,_||_| \\___||_| |_| \\__,_| \\__,_||_|    |_|  |_| \\__,_||_| |_| \\__,_| \\__, | \\___||_|");
-        System.out.println("                                                                                   __/ |");
-        System.out.println("                                                                                  |___/");
+        JLabel welcomeLabel = new JLabel("Bienvenue ! Connectez-vous ou créez un compte.", SwingConstants.CENTER);
+        loginPanel.add(welcomeLabel, BorderLayout.NORTH);
+
+        JPanel fieldsPanel = new JPanel();
+        fieldsPanel.setLayout(new GridLayout(3, 2));
+
+        JLabel usernameLabel = new JLabel("Nom d'utilisateur:");
+        JTextField usernameField = new JTextField();
+        JLabel passwordLabel = new JLabel("Mot de passe:");
+        JPasswordField passwordField = new JPasswordField();
+
+        fieldsPanel.add(usernameLabel);
+        fieldsPanel.add(usernameField);
+        fieldsPanel.add(passwordLabel);
+        fieldsPanel.add(passwordField);
+
+        loginPanel.add(fieldsPanel, BorderLayout.CENTER);
+
+        JPanel buttonPanel = new JPanel();
+        JButton loginButton = new JButton("Se connecter");
+        loginButton.addActionListener(e -> {
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            if (seConnecter(username, password)) {
+                utilisateur = username;
+                ((CardLayout) mainPanel.getLayout()).show(mainPanel, "Menu");
+            } else {
+                JOptionPane.showMessageDialog(frame, "Nom d'utilisateur ou mot de passe incorrect.");
+            }
+        });
+
+        JButton createAccountButton = new JButton("Créer un compte");
+        createAccountButton.addActionListener(e -> {
+            // Fonctionnalité pour la création de compte (similaire à la méthode 'creerCompte' de ton code)
+            String username = usernameField.getText();
+            String password = new String(passwordField.getPassword());
+            if (creerCompte(username, password)) {
+                JOptionPane.showMessageDialog(frame, "Compte créé avec succès !");
+            } else {
+                JOptionPane.showMessageDialog(frame, "Erreur lors de la création du compte.");
+            }
+        });
+
+        buttonPanel.add(loginButton);
+        buttonPanel.add(createAccountButton);
+
+        loginPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        return loginPanel;
     }
 
-    private static void afficherMenuConnexion() {
-        System.out.println("1 - Se connecter");
-        System.out.println("2 - Créer un compte");
-        System.out.print("Choix : ");
+    // Panneau principal (après connexion)
+    private static JPanel createMenuPanel(JPanel mainPanel) {
+        JPanel menuPanel = new JPanel();
+        menuPanel.setLayout(new BorderLayout());
 
-        switch (scanner.nextLine()) {
-            case "1":
-                seConnecter();
-                break;
-            case "2":
-                creerCompte();
-                break;
-            default:
-                System.out.println("Option invalide.");
-        }
-    }
+        JLabel welcomeLabel = new JLabel("Bonjour, " + utilisateur, SwingConstants.CENTER);
+        menuPanel.add(welcomeLabel, BorderLayout.NORTH);
 
-    private static void seConnecter() {
-        System.out.print("Nom d'utilisateur: ");
-        utilisateur = scanner.nextLine();
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(6, 1));
 
-        if (utilisateur.equals("Roger")) {
-            String motDePasse = scanner.nextLine();
-            if (!motDePasse.equals("Chat")) {
-                utilisateur = null;
-            }
-        } else if (utilisateur.equals("Pierre")) {
-            String motDePasse = scanner.nextLine();
-            if (!motDePasse.equals("KiRouhl")) {
-                utilisateur = null;
-            }
-        } else {
-            System.out.print("Mot de passe: ");
-            String motDePasse = scanner.nextLine();
-            for (int i = 0; i < nbUtilisateurs; i++) {
-                assert utilisateurs[i] != null;
-                if (utilisateurs[i].equals(utilisateur) && motsDePasses[i].equals(motDePasse)) {
-                    utilisateur = utilisateurs[i];
-                }
-            }
-        }
-    }
-
-    private static void creerCompte() {
-        System.out.print("Nom d'utilisateur: ");
-        utilisateur = scanner.nextLine();
-        System.out.print("Mot de passe: ");
-        String motDePasse = scanner.nextLine();
-        System.out.print("Répéter mot de passe: ");
-        if (scanner.nextLine().equals(motDePasse)) {
-            utilisateurs[nbUtilisateurs] = utilisateur;
-            motsDePasses[nbUtilisateurs] = motDePasse;
-            nbUtilisateurs++;
-        } else {
-            System.out.println("Les mots de passes ne correspondent pas...");
+        JButton viewEventsButton = new JButton("Voir les événements");
+        viewEventsButton.addActionListener(e -> afficherEvenements());
+        JButton addPersonalRdvButton = new JButton("Ajouter un rendez-vous personnel");
+        addPersonalRdvButton.addActionListener(e -> ajouterRdvPersonnel());
+        JButton addMeetingButton = new JButton("Ajouter une réunion");
+        addMeetingButton.addActionListener(e -> ajouterReunion());
+        JButton addPeriodicEventButton = new JButton("Ajouter un événement périodique");
+        addPeriodicEventButton.addActionListener(e -> ajouterEvenementPeriodique());
+        JButton addBirthdayButton = new JButton("Ajouter un anniversaire");
+        addBirthdayButton.addActionListener(e -> ajouterAnniversaire());
+        JButton logoutButton = new JButton("Se déconnecter");
+        logoutButton.addActionListener(e -> {
             utilisateur = null;
+            ((CardLayout) mainPanel.getLayout()).show(mainPanel, "Login");
+        });
+
+        buttonPanel.add(viewEventsButton);
+        buttonPanel.add(addPersonalRdvButton);
+        buttonPanel.add(addMeetingButton);
+        buttonPanel.add(addPeriodicEventButton);
+        buttonPanel.add(addBirthdayButton);
+        buttonPanel.add(logoutButton);
+
+        menuPanel.add(buttonPanel, BorderLayout.CENTER);
+
+        return menuPanel;
+    }
+
+    // Méthodes de gestion des événements
+
+    private static boolean seConnecter(String username, String password) {
+        // Logique de connexion
+        if ("Roger".equals(username) && "Chat".equals(password)) {
+            return true;
+        } else if ("Pierre".equals(username) && "KiRouhl".equals(password)) {
+            return true;
         }
+        // Logique pour vérifier les utilisateurs créés (si nécessaire)
+        for (int i = 0; i < nbUtilisateurs; i++) {
+            if (utilisateurs[i].equals(username) && motsDePasses[i].equals(password)) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    private static void afficherMenuGestionnaire() {
-        System.out.println("\nBonjour, " + utilisateur);
-        System.out.println("=== Menu Gestionnaire d'Événements ===");
-        System.out.println("1 - Voir les événements");
-        System.out.println("2 - Ajouter un rendez-vous perso");
-        System.out.println("3 - Ajouter une réunion");
-        System.out.println("4 - Ajouter un évènement périodique");
-        System.out.println("5 - Ajouter un anniversaire");
-        System.out.println("6 - Se déconnecter");
-        System.out.println("7 - Supprimer un événement");
-        System.out.print("Votre choix : ");
+    private static boolean creerCompte(String username, String password) {
+        // Logique pour créer un compte
+        if (username != null && !username.isEmpty() && password != null && !password.isEmpty()) {
+            utilisateurs[nbUtilisateurs] = username;
+            motsDePasses[nbUtilisateurs] = password;
+            nbUtilisateurs++;
+            return true;
+        }
+        return false;
     }
-
-    // Méthodes pour gérer les événements
 
     private static void afficherEvenements() {
-        System.out.println("\n=== Menu de visualisation d'Événements ===");
-        System.out.println("1 - Afficher TOUS les événements");
-        System.out.println("2 - Afficher les événements d'un MOIS précis");
-        System.out.println("3 - Afficher les événements d'une SEMAINE précise");
-        System.out.println("4 - Afficher les événements d'un JOUR précis");
-        System.out.println("5 - Retour");
-        System.out.print("Votre choix : ");
+        JFrame frame = new JFrame("Visualisation d'Événements");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(400, 300);
 
-        String choix = scanner.nextLine();
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
 
-        switch (choix) {
-            case "1":
-                calendar.afficherEvenements();
-                break;
-            case "2":
-                afficherEvenementsParMois();
-                break;
-            case "3":
-                afficherEvenementsParSemaine();
-                break;
-            case "4":
-                afficherEvenementsParJour();
-                break;
-            case "5":
-                break;
-            default:
-                System.out.println("Option invalide.");
-        }
+        JLabel label = new JLabel("=== Menu de visualisation d'Événements ===", SwingConstants.CENTER);
+        panel.add(label, BorderLayout.NORTH);
+
+        String[] options = {
+            "1 - Afficher TOUS les événements",
+            "2 - Afficher les événements d'un MOIS précis",
+            "3 - Afficher les événements d'une SEMAINE précise",
+            "4 - Afficher les événements d'un JOUR précis",
+            "5 - Retour"
+        };
+        JList<String> list = new JList<>(options);
+        panel.add(new JScrollPane(list), BorderLayout.CENTER);
+
+        JButton selectButton = new JButton("Sélectionner");
+        selectButton.addActionListener(e -> {
+            String choix = list.getSelectedValue().substring(0, 1);
+            switch (choix) {
+                case "1":
+                    calendar.afficherEvenements();
+                    break;
+                case "2":
+                    afficherEvenementsParMois();
+                    break;
+                case "3":
+                    afficherEvenementsParSemaine();
+                    break;
+                case "4":
+                    afficherEvenementsParJour();
+                    break;
+                case "5":
+                    frame.dispose();
+                    break;
+                default:
+                    JOptionPane.showMessageDialog(frame, "Option invalide.");
+            }
+        });
+        panel.add(selectButton, BorderLayout.SOUTH);
+
+        frame.add(panel);
+        frame.setVisible(true);
     }
 
     private static void afficherEvenementsParMois() {
-        System.out.print("Entrez l'année (AAAA) : ");
-        int anneeMois = Integer.parseInt(scanner.nextLine());
-        System.out.print("Entrez le mois (1-12) : ");
-        int mois = Integer.parseInt(scanner.nextLine());
+        JFrame frame = new JFrame("Afficher les événements par mois");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 200);
 
-        LocalDateTime debutMois = LocalDateTime.of(anneeMois, mois, 1, 0, 0);
-        LocalDateTime finMois = debutMois.plusMonths(1).minusSeconds(1);
+        JPanel panel = new JPanel(new GridLayout(3, 2));
 
-        afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutMois), new DateEvenement(finMois)));
+        JLabel anneeLabel = new JLabel("Entrez l'année (AAAA) :");
+        JTextField anneeField = new JTextField();
+        JLabel moisLabel = new JLabel("Entrez le mois (1-12) :");
+        JTextField moisField = new JTextField();
+
+        panel.add(anneeLabel);
+        panel.add(anneeField);
+        panel.add(moisLabel);
+        panel.add(moisField);
+
+        JButton submitButton = new JButton("Soumettre");
+        submitButton.addActionListener(e -> {
+            int anneeMois = Integer.parseInt(anneeField.getText());
+            int mois = Integer.parseInt(moisField.getText());
+
+            LocalDateTime debutMois = LocalDateTime.of(anneeMois, mois, 1, 0, 0);
+            LocalDateTime finMois = debutMois.plusMonths(1).minusSeconds(1);
+
+            afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutMois), new DateEvenement(finMois)));
+            frame.dispose();
+        });
+
+        panel.add(submitButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
     }
 
     private static void afficherEvenementsParSemaine() {
-        System.out.print("Entrez l'année (AAAA) : ");
-        int anneeSemaine = Integer.parseInt(scanner.nextLine());
-        System.out.print("Entrez le numéro de semaine (1-52) : ");
-        int semaine = Integer.parseInt(scanner.nextLine());
+        JFrame frame = new JFrame("Afficher les événements par semaine");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 200);
 
-        LocalDateTime debutSemaine = LocalDateTime.now()
-                .withYear(anneeSemaine)
-                .with(WeekFields.of(Locale.FRANCE).weekOfYear(), semaine)
-                .with(WeekFields.of(Locale.FRANCE).dayOfWeek(), 1)
-                .withHour(0).withMinute(0);
-        LocalDateTime finSemaine = debutSemaine.plusDays(7).minusSeconds(1);
+        JPanel panel = new JPanel(new GridLayout(3, 2));
 
-        afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutSemaine), new DateEvenement(finSemaine)));
+        JLabel anneeLabel = new JLabel("Entrez l'année (AAAA) :");
+        JTextField anneeField = new JTextField();
+        JLabel semaineLabel = new JLabel("Entrez le numéro de semaine (1-52) :");
+        JTextField semaineField = new JTextField();
+
+        panel.add(anneeLabel);
+        panel.add(anneeField);
+        panel.add(semaineLabel);
+        panel.add(semaineField);
+
+        JButton submitButton = new JButton("Soumettre");
+        submitButton.addActionListener(e -> {
+            int anneeSemaine = Integer.parseInt(anneeField.getText());
+            int semaine = Integer.parseInt(semaineField.getText());
+
+            LocalDateTime debutSemaine = LocalDateTime.now()
+                    .withYear(anneeSemaine)
+                    .with(WeekFields.of(Locale.FRANCE).weekOfYear(), semaine)
+                    .with(WeekFields.of(Locale.FRANCE).dayOfWeek(), 1)
+                    .withHour(0).withMinute(0);
+            LocalDateTime finSemaine = debutSemaine.plusDays(7).minusSeconds(1);
+
+            afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutSemaine), new DateEvenement(finSemaine)));
+            frame.dispose();
+        });
+
+        panel.add(submitButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
     }
 
     private static void afficherEvenementsParJour() {
-        System.out.print("Entrez l'année (AAAA) : ");
-        int anneeJour = Integer.parseInt(scanner.nextLine());
-        System.out.print("Entrez le mois (1-12) : ");
-        int moisJour = Integer.parseInt(scanner.nextLine());
-        System.out.print("Entrez le jour (1-31) : ");
-        int jour = Integer.parseInt(scanner.nextLine());
+        JFrame frame = new JFrame("Afficher les événements par jour");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 200);
 
-        LocalDateTime debutJour = LocalDateTime.of(anneeJour, moisJour, jour, 0, 0);
-        LocalDateTime finJour = debutJour.plusDays(1).minusSeconds(1);
+        JPanel panel = new JPanel(new GridLayout(4, 2));
 
-        afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutJour), new DateEvenement(finJour)));
+        JLabel anneeLabel = new JLabel("Entrez l'année (AAAA) :");
+        JTextField anneeField = new JTextField();
+        JLabel moisLabel = new JLabel("Entrez le mois (1-12) :");
+        JTextField moisField = new JTextField();
+        JLabel jourLabel = new JLabel("Entrez le jour (1-31) :");
+        JTextField jourField = new JTextField();
+
+        panel.add(anneeLabel);
+        panel.add(anneeField);
+        panel.add(moisLabel);
+        panel.add(moisField);
+        panel.add(jourLabel);
+        panel.add(jourField);
+
+        JButton submitButton = new JButton("Soumettre");
+        submitButton.addActionListener(e -> {
+            int anneeJour = Integer.parseInt(anneeField.getText());
+            int moisJour = Integer.parseInt(moisField.getText());
+            int jour = Integer.parseInt(jourField.getText());
+
+            LocalDateTime debutJour = LocalDateTime.of(anneeJour, moisJour, jour, 0, 0);
+            LocalDateTime finJour = debutJour.plusDays(1).minusSeconds(1);
+
+            afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutJour), new DateEvenement(finJour)));
+            frame.dispose();
+        });
+
+        panel.add(submitButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
+    }
+
+    private static void afficherListe(List<Event> events) {
+        JFrame frame = new JFrame("Liste des événements");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(400, 300);
+
+        JPanel panel = new JPanel();
+        panel.setLayout(new BorderLayout());
+
+        JLabel label = new JLabel("Liste des événements", SwingConstants.CENTER);
+        panel.add(label, BorderLayout.NORTH);
+
+        DefaultListModel<String> model = new DefaultListModel<>();
+        events.forEach(e -> model.addElement(e.description()));
+        JList<String> list = new JList<>(model);
+        panel.add(new JScrollPane(list), BorderLayout.CENTER);
+
+        frame.add(panel);
+        frame.setVisible(true);
     }
 
     private static void ajouterRdvPersonnel() {
-        System.out.print("Titre de l'événement : ");
-        String titre = scanner.nextLine();
-        System.out.print("Année (AAAA) : ");
-        int annee = Integer.parseInt(scanner.nextLine());
-        System.out.print("Mois (1-12) : ");
-        int moisRdv = Integer.parseInt(scanner.nextLine());
-        System.out.print("Jour (1-31) : ");
-        int jourRdv = Integer.parseInt(scanner.nextLine());
-        System.out.print("Heure début (0-23) : ");
-        int heure = Integer.parseInt(scanner.nextLine());
-        System.out.print("Minute début (0-59) : ");
-        int minute = Integer.parseInt(scanner.nextLine());
-        System.out.print("Durée (en minutes) : ");
-        int duree = Integer.parseInt(scanner.nextLine());
+        JFrame frame = new JFrame("Ajouter un rendez-vous personnel");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 400);
 
-        TitreEvenement titreEvenement = new TitreEvenement(titre);
-        ProprietaireEvenement proprietaireEvenement = new ProprietaireEvenement(utilisateur);
-        DateEvenement dateEvenement = new DateEvenement(LocalDateTime.of(annee, moisRdv, jourRdv, heure, minute));
-        DureeEvenement dureeEvenement = new DureeEvenement(duree);
-        IdEvenement idEvenement = new IdEvenement(UUID.randomUUID());
+        JPanel panel = new JPanel(new GridLayout(8, 2));
 
-        Event rdvPersonnel = new RdvPersonnel(idEvenement, titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement);
+        panel.add(new JLabel("Titre de l'événement :"));
+        JTextField titreField = new JTextField();
+        panel.add(titreField);
 
-        calendar.ajouterEvent(rdvPersonnel);
+        panel.add(new JLabel("Année (AAAA) :"));
+        JTextField anneeField = new JTextField();
+        panel.add(anneeField);
 
-        System.out.println("Événement ajouté.");
-    }
+        panel.add(new JLabel("Mois (1-12) :"));
+        JTextField moisField = new JTextField();
+        panel.add(moisField);
 
-    private static void ajouterReunion() {
-        System.out.print("Titre de l'événement : ");
-        String titre2 = scanner.nextLine();
-        System.out.print("Année (AAAA) : ");
-        int annee2 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Mois (1-12) : ");
-        int moisRdv2 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Jour (1-31) : ");
-        int jourRdv2 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Heure début (0-23) : ");
-        int heure2 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Minute début (0-59) : ");
-        int minute2 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Durée (en minutes) : ");
-        int duree2 = Integer.parseInt(scanner.nextLine());
-        System.out.println("Lieu :");
-        String lieu = scanner.nextLine();
+        panel.add(new JLabel("Jour (1-31) :"));
+        JTextField jourField = new JTextField();
+        panel.add(jourField);
 
-        List<String> participants = new java.util.ArrayList<>(List.of(utilisateur));
+        panel.add(new JLabel("Heure début (0-23) :"));
+        JTextField heureField = new JTextField();
+        panel.add(heureField);
 
-        System.out.println("Ajouter un participant ? (oui / non)");
-        while (scanner.nextLine().equals("oui"))
-        {
-            System.out.print("Participants : " + participants);
-            participants.add(scanner.nextLine());
-        }
+        panel.add(new JLabel("Minute début (0-59) :"));
+        JTextField minuteField = new JTextField();
+        panel.add(minuteField);
 
-        TitreEvenement titreEvenement2 = new TitreEvenement(titre2);
-        ProprietaireEvenement proprietaireEvenement2 = new ProprietaireEvenement(utilisateur);
-        DateEvenement dateEvenement2 = new DateEvenement(LocalDateTime.of(annee2, moisRdv2, jourRdv2, heure2, minute2));
-        DureeEvenement dureeEvenement2 = new DureeEvenement(duree2);
-        LieuEvenement lieuEvenement = new LieuEvenement(lieu);
-        ParticipantsEvenement participantsEvenement = new ParticipantsEvenement(participants);
-        IdEvenement idEvenement2 = new IdEvenement(UUID.randomUUID());
+        panel.add(new JLabel("Durée (en minutes) :"));
+        JTextField dureeField = new JTextField();
+        panel.add(dureeField);
 
-        Event reunion = new Reunion(idEvenement2, titreEvenement2, proprietaireEvenement2, dateEvenement2, dureeEvenement2, lieuEvenement, participantsEvenement);
+        JButton submitButton = new JButton("Ajouter");
+        submitButton.addActionListener(e -> {
+            String titre = titreField.getText();
+            int annee = Integer.parseInt(anneeField.getText());
+            int mois = Integer.parseInt(moisField.getText());
+            int jour = Integer.parseInt(jourField.getText());
+            int heure = Integer.parseInt(heureField.getText());
+            int minute = Integer.parseInt(minuteField.getText());
+            int duree = Integer.parseInt(dureeField.getText());
 
-        calendar.ajouterEvent(reunion);
+            TitreEvenement titreEvenement = new TitreEvenement(titre);
+            ProprietaireEvenement proprietaireEvenement = new ProprietaireEvenement(utilisateur);
+            DateEvenement dateEvenement = new DateEvenement(LocalDateTime.of(annee, mois, jour, heure, minute));
+            DureeEvenement dureeEvenement = new DureeEvenement(duree);
+            IdEvenement idEvenement = new IdEvenement(UUID.randomUUID());
 
-        System.out.println("Événement ajouté.");
-    }
+            Event rdvPersonnel = new RdvPersonnel(idEvenement, titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement);
 
-    private static void ajouterEvenementPeriodique() {
-        System.out.print("Titre de l'événement : ");
-        String titre3 = scanner.nextLine();
-        System.out.print("Année (AAAA) : ");
-        int annee3 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Mois (1-12) : ");
-        int moisRdv3 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Jour (1-31) : ");
-        int jourRdv3 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Heure début (0-23) : ");
-        int heure3 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Minute début (0-59) : ");
-        int minute3 = Integer.parseInt(scanner.nextLine());
-        System.out.print("Fréquence (en jours) : ");
-        int frequence = Integer.parseInt(scanner.nextLine());
+            calendar.ajouterEvent(rdvPersonnel);
 
-        TitreEvenement titreEvenement3 = new TitreEvenement(titre3);
-        ProprietaireEvenement proprietaireEvenement3 = new ProprietaireEvenement(utilisateur);
-        DateEvenement dateEvenement3 = new DateEvenement(LocalDateTime.of(annee3, moisRdv3, jourRdv3, heure3, minute3));
-        DureeEvenement dureeEvenement3 = new DureeEvenement(0);
-        FrequenceEvenement frequenceEvenement = new FrequenceEvenement(frequence);
-        IdEvenement idEvenement3 = new IdEvenement(UUID.randomUUID());
+            JOptionPane.showMessageDialog(frame, "Événement ajouté.");
+            frame.dispose();
+        });
 
-        Event evenementPeriodique = new EvenementPeriodique(idEvenement3, titreEvenement3, proprietaireEvenement3, dateEvenement3, dureeEvenement3, frequenceEvenement);
+        panel.add(submitButton);
 
-        calendar.ajouterEvent(evenementPeriodique);
+        frame.add(panel);
+        frame.setVisible(true);
+    }private static void ajouterReunion() {
+        JFrame frame = new JFrame("Ajouter une réunion");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 400);
 
-        System.out.println("Événement ajouté.");
-    }
+        JPanel panel = new JPanel(new GridLayout(9, 2));
 
-    private static void ajouterAnniversaire() {
-        System.out.print("Titre de l'événement : ");
-        String titreAnniversaire = scanner.nextLine();
-        System.out.print("Année (AAAA) : ");
-        int anneeAnniversaire = Integer.parseInt(scanner.nextLine());
-        System.out.print("Mois (1-12) : ");
-        int moisAnniversaire = Integer.parseInt(scanner.nextLine());
-        System.out.print("Jour (1-31) : ");
-        int jourAnniversaire = Integer.parseInt(scanner.nextLine());
-        System.out.print("Heure début (0-23) : ");
-        int heureAnniversaire = Integer.parseInt(scanner.nextLine());
-        System.out.print("Minute début (0-59) : ");
-        int minuteAnniversaire = Integer.parseInt(scanner.nextLine());
-        System.out.print("Nom de la personne célébrée : ");
-        String personneAnniversaire = scanner.nextLine();
-        System.out.print("Durée (en minutes) : ");
-        int dureeAnniversaire = Integer.parseInt(scanner.nextLine());
+        panel.add(new JLabel("Titre de l'événement :"));
+        JTextField titreField = new JTextField();
+        panel.add(titreField);
 
-        TitreEvenement titreEvenementAnniversaire = new TitreEvenement(titreAnniversaire);
-        ProprietaireEvenement proprietaireEvenementAnniversaire = new ProprietaireEvenement(utilisateur);
-        DateEvenement dateEvenementAnniversaire = new DateEvenement(LocalDateTime.of(anneeAnniversaire, moisAnniversaire, jourAnniversaire, heureAnniversaire, minuteAnniversaire));
-        DureeEvenement dureeEvenementAnniversaire = new DureeEvenement(dureeAnniversaire);
-        IdEvenement idEvenementAnniversaire = new IdEvenement(UUID.randomUUID());
+        panel.add(new JLabel("Année (AAAA) :"));
+        JTextField anneeField = new JTextField();
+        panel.add(anneeField);
 
-        Event anniversaire = new EvenementAnniversaire(idEvenementAnniversaire, titreEvenementAnniversaire, proprietaireEvenementAnniversaire, dateEvenementAnniversaire, dureeEvenementAnniversaire, personneAnniversaire);
+        panel.add(new JLabel("Mois (1-12) :"));
+        JTextField moisField = new JTextField();
+        panel.add(moisField);
 
-        calendar.ajouterEvent(anniversaire);
+        panel.add(new JLabel("Jour (1-31) :"));
+        JTextField jourField = new JTextField();
+        panel.add(jourField);
 
-        System.out.println("Événement Anniversaire ajouté.");
-    }
+        panel.add(new JLabel("Heure début (0-23) :"));
+        JTextField heureField = new JTextField();
+        panel.add(heureField);
 
-    private static void supprimerEvenement() {
-        System.out.print("Entrez l'UUID de l'événement à supprimer : ");
-        String uuidInput = scanner.nextLine();
+        panel.add(new JLabel("Minute début (0-59) :"));
+        JTextField minuteField = new JTextField();
+        panel.add(minuteField);
 
-        try {
-            UUID uuidToDelete = UUID.fromString(uuidInput);
-            IdEvenement idEvenementtoDelete = new IdEvenement(uuidToDelete);
-            boolean deleted = calendar.supprimerEventParId(idEvenementtoDelete);
-            if (deleted) {
-                System.out.println("Événement supprimé avec succès.");
-            } else {
-                System.out.println("Événement introuvable avec cet UUID.");
+        panel.add(new JLabel("Durée (en minutes) :"));
+        JTextField dureeField = new JTextField();
+        panel.add(dureeField);
+
+        panel.add(new JLabel("Lieu :"));
+        JTextField lieuField = new JTextField();
+        panel.add(lieuField);
+
+        panel.add(new JLabel("Participants :"));
+        JTextField participantsField = new JTextField();
+        panel.add(participantsField);
+
+        JButton submitButton = new JButton("Ajouter");
+        submitButton.addActionListener(e -> {
+            String titre = titreField.getText();
+            int annee = Integer.parseInt(anneeField.getText());
+            int mois = Integer.parseInt(moisField.getText());
+            int jour = Integer.parseInt(jourField.getText());
+            int heure = Integer.parseInt(heureField.getText());
+            int minute = Integer.parseInt(minuteField.getText());
+            int duree = Integer.parseInt(dureeField.getText());
+            String lieu = lieuField.getText();
+            List<String> participants = List.of(participantsField.getText().split(","));
+
+            TitreEvenement titreEvenement = new TitreEvenement(titre);
+            ProprietaireEvenement proprietaireEvenement = new ProprietaireEvenement(utilisateur);
+            DateEvenement dateEvenement = new DateEvenement(LocalDateTime.of(annee, mois, jour, heure, minute));
+            DureeEvenement dureeEvenement = new DureeEvenement(duree);
+            LieuEvenement lieuEvenement = new LieuEvenement(lieu);
+            ParticipantsEvenement participantsEvenement = new ParticipantsEvenement(participants);
+            IdEvenement idEvenement = new IdEvenement(UUID.randomUUID());
+
+            Event reunion = new Reunion(idEvenement, titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement, lieuEvenement, participantsEvenement);
+
+            calendar.ajouterEvent(reunion);
+
+            JOptionPane.showMessageDialog(frame, "Événement ajouté.");
+            frame.dispose();
+        });
+
+        panel.add(submitButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
+    }private static void ajouterEvenementPeriodique() {
+        JFrame frame = new JFrame("Ajouter un événement périodique");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 400);
+
+        JPanel panel = new JPanel(new GridLayout(8, 2));
+
+        panel.add(new JLabel("Titre de l'événement :"));
+        JTextField titreField = new JTextField();
+        panel.add(titreField);
+
+        panel.add(new JLabel("Année (AAAA) :"));
+        JTextField anneeField = new JTextField();
+        panel.add(anneeField);
+
+        panel.add(new JLabel("Mois (1-12) :"));
+        JTextField moisField = new JTextField();
+        panel.add(moisField);
+
+        panel.add(new JLabel("Jour (1-31) :"));
+        JTextField jourField = new JTextField();
+        panel.add(jourField);
+
+        panel.add(new JLabel("Heure début (0-23) :"));
+        JTextField heureField = new JTextField();
+        panel.add(heureField);
+
+        panel.add(new JLabel("Minute début (0-59) :"));
+        JTextField minuteField = new JTextField();
+        panel.add(minuteField);
+
+        panel.add(new JLabel("Fréquence (en jours) :"));
+        JTextField frequenceField = new JTextField();
+        panel.add(frequenceField);
+
+        JButton submitButton = new JButton("Ajouter");
+        submitButton.addActionListener(e -> {
+            String titre = titreField.getText();
+            int annee = Integer.parseInt(anneeField.getText());
+            int mois = Integer.parseInt(moisField.getText());
+            int jour = Integer.parseInt(jourField.getText());
+            int heure = Integer.parseInt(heureField.getText());
+            int minute = Integer.parseInt(minuteField.getText());
+            int frequence = Integer.parseInt(frequenceField.getText());
+
+            TitreEvenement titreEvenement = new TitreEvenement(titre);
+            ProprietaireEvenement proprietaireEvenement = new ProprietaireEvenement(utilisateur);
+            DateEvenement dateEvenement = new DateEvenement(LocalDateTime.of(annee, mois, jour, heure, minute));
+            DureeEvenement dureeEvenement = new DureeEvenement(0);
+            FrequenceEvenement frequenceEvenement = new FrequenceEvenement(frequence);
+            IdEvenement idEvenement = new IdEvenement(UUID.randomUUID());
+
+            Event evenementPeriodique = new EvenementPeriodique(idEvenement, titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement, frequenceEvenement);
+
+            calendar.ajouterEvent(evenementPeriodique);
+
+            JOptionPane.showMessageDialog(frame, "Événement ajouté.");
+            frame.dispose();
+        });
+
+        panel.add(submitButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
+    }private static void ajouterAnniversaire() {
+        JFrame frame = new JFrame("Ajouter un anniversaire");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 400);
+
+        JPanel panel = new JPanel(new GridLayout(9, 2));
+
+        panel.add(new JLabel("Titre de l'événement :"));
+        JTextField titreField = new JTextField();
+        panel.add(titreField);
+
+        panel.add(new JLabel("Année (AAAA) :"));
+        JTextField anneeField = new JTextField();
+        panel.add(anneeField);
+
+        panel.add(new JLabel("Mois (1-12) :"));
+        JTextField moisField = new JTextField();
+        panel.add(moisField);
+
+        panel.add(new JLabel("Jour (1-31) :"));
+        JTextField jourField = new JTextField();
+        panel.add(jourField);
+
+        panel.add(new JLabel("Heure début (0-23) :"));
+        JTextField heureField = new JTextField();
+        panel.add(heureField);
+
+        panel.add(new JLabel("Minute début (0-59) :"));
+        JTextField minuteField = new JTextField();
+        panel.add(minuteField);
+
+        panel.add(new JLabel("Nom de la personne célébrée :"));
+        JTextField personneField = new JTextField();
+        panel.add(personneField);
+
+        panel.add(new JLabel("Durée (en minutes) :"));
+        JTextField dureeField = new JTextField();
+        panel.add(dureeField);
+
+        JButton submitButton = new JButton("Ajouter");
+        submitButton.addActionListener(e -> {
+            String titre = titreField.getText();
+            int annee = Integer.parseInt(anneeField.getText());
+            int mois = Integer.parseInt(moisField.getText());
+            int jour = Integer.parseInt(jourField.getText());
+            int heure = Integer.parseInt(heureField.getText());
+            int minute = Integer.parseInt(minuteField.getText());
+            String personne = personneField.getText();
+            int duree = Integer.parseInt(dureeField.getText());
+
+            TitreEvenement titreEvenement = new TitreEvenement(titre);
+            ProprietaireEvenement proprietaireEvenement = new ProprietaireEvenement(utilisateur);
+            DateEvenement dateEvenement = new DateEvenement(LocalDateTime.of(annee, mois, jour, heure, minute));
+            DureeEvenement dureeEvenement = new DureeEvenement(duree);
+            IdEvenement idEvenement = new IdEvenement(UUID.randomUUID());
+
+            Event anniversaire = new EvenementAnniversaire(idEvenement, titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement, personne);
+
+            calendar.ajouterEvent(anniversaire);
+
+            JOptionPane.showMessageDialog(frame, "Événement Anniversaire ajouté.");
+            frame.dispose();
+        });
+
+        panel.add(submitButton);
+
+        frame.add(panel);
+        frame.setVisible(true);
+    }private static void supprimerEvenement() {
+        JFrame frame = new JFrame("Supprimer un événement");
+        frame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        frame.setSize(300, 200);
+
+        JPanel panel = new JPanel(new GridLayout(2, 2));
+
+        panel.add(new JLabel("Entrez l'UUID de l'événement à supprimer :"));
+        JTextField uuidField = new JTextField();
+        panel.add(uuidField);
+
+        JButton submitButton = new JButton("Supprimer");
+        submitButton.addActionListener(e -> {
+            String uuidInput = uuidField.getText();
+
+            try {
+                UUID uuidToDelete = UUID.fromString(uuidInput);
+                IdEvenement idEvenementtoDelete = new IdEvenement(uuidToDelete);
+                boolean deleted = calendar.supprimerEventParId(idEvenementtoDelete);
+                if (deleted) {
+                    JOptionPane.showMessageDialog(frame, "Événement supprimé avec succès.");
+                } else {
+                    JOptionPane.showMessageDialog(frame, "Événement introuvable avec cet UUID.");
+                }
+            } catch (IllegalArgumentException ex) {
+                JOptionPane.showMessageDialog(frame, "UUID invalide.");
             }
-        } catch (IllegalArgumentException e) {
-            System.out.println("UUID invalide.");
-        }
-    }
+            frame.dispose();
+        });
 
-    private static void deconnecterUtilisateur() {
-        System.out.println("Déconnexion ! Voulez-vous continuer ? (O/N)");
-        boolean continuer = scanner.nextLine().trim().equalsIgnoreCase("oui");
-        if (!continuer) {
-            utilisateur = null;
-        }
-    }
+        panel.add(submitButton);
 
-    private static void afficherListe(List<Event> evenements) {
-        if (evenements.isEmpty()) {
-            System.out.println("Aucun événement trouvé pour cette période.");
-        } else {
-            System.out.println("Événements trouvés : ");
-            for (Event e : evenements) {
-                System.out.println("- " + e.description());
-            }
-        }
+        frame.add(panel);
+        frame.setVisible(true);
     }
 }

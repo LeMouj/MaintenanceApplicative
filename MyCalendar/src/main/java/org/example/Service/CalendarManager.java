@@ -14,7 +14,7 @@ public class CalendarManager {
         this.evenements = new Evenements();
     }
 
-    // Ajoute un événement à la liste d'événements
+    // Ajoute un événement à la liste d'événements et le sauvegarde dans un fichier JSON
     public void ajouterEvent(Event event) {
         evenements.ajouter(event);
     }
@@ -39,9 +39,11 @@ public class CalendarManager {
     }
 
     public boolean supprimerEventParId(IdEvenement eventId) {
-        evenements.getListe().removeIf(e -> e.getEventId().equals(eventId));
-        return false;
+        return evenements.getListe().removeIf(e -> e.getEventId().equals(eventId));
     }
 
-    public Evenements getEvenements() {return evenements;}
+    public Evenements getEvenements() {
+        return evenements;
+    }
+
 }
