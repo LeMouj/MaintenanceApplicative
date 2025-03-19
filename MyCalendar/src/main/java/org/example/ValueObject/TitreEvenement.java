@@ -1,6 +1,4 @@
-package Utils;
-
-import java.util.Objects;
+package ValueObject;
 
 public record TitreEvenement(String valeur) {
     public TitreEvenement {

@@ -1,4 +1,4 @@
-package Utils;
+package ValueObject;
 
 import java.util.List;
 

@@ -1,4 +1,4 @@
-package Utils;
+package ValueObject;
 
 public record ProprietaireEvenement(String valeur) {
     public ProprietaireEvenement {

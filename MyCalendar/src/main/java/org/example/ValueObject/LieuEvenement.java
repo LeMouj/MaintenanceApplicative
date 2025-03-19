@@ -1,4 +1,4 @@
-package Utils;
+package ValueObject;
 
 public record LieuEvenement(String valeur) {
     public LieuEvenement {

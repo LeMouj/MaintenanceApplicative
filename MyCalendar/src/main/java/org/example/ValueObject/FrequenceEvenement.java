@@ -1,4 +1,4 @@
-package Utils;
+package ValueObject;
 
 public record FrequenceEvenement(int jours) {
     public FrequenceEvenement {

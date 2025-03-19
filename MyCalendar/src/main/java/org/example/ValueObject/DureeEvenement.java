@@ -1,4 +1,4 @@
-package Utils;
+package ValueObject;
 
 public record DureeEvenement(int valeur) {
     public DureeEvenement {
