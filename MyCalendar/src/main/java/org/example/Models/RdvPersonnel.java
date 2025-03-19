@@ -1,6 +1,6 @@
-package Models;
+package org.example.Models;
 
-import ValueObject.*;
+import org.example.ValueObject.*;
 
 public class RdvPersonnel extends Event {
 

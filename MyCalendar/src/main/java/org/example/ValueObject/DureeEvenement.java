@@ -1,4 +1,4 @@
-package ValueObject;
+package org.example.ValueObject;
 
 public record DureeEvenement(int valeur) {
     public DureeEvenement {

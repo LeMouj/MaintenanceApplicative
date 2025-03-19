@@ -1,4 +1,4 @@
-package ValueObject;
+package org.example.ValueObject;
 
 import java.time.LocalDateTime;
 
