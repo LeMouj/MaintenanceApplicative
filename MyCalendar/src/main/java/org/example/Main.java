@@ -1,3 +1,9 @@
+package org.example;
+
+import org.example.Service.CalendarManager;
+import org.example.Models.*;
+import org.example.ValueObject.*;
+
 import java.time.LocalDateTime;
 import java.time.temporal.WeekFields;
 import java.util.List;
@@ -11,27 +17,22 @@ public class Main {
         String utilisateur = null;
         boolean continuer = true;
 
-        String utilisateurs[] = new String[99];
-        String motsDePasses[] = new String[99];
+        String[] utilisateurs = new String[99];
+        String[] motsDePasses = new String[99];
         int nbUtilisateurs = 0;
 
         while (true) {
 
             if (utilisateur == null) {
+                // Affichage du logo
                 System.out.println("  _____         _                   _                __  __");
                 System.out.println(" / ____|       | |                 | |              |  \\/  |");
-                System.out.println(
-                        "| |       __ _ | |  ___  _ __    __| |  __ _  _ __  | \\  / |  __ _  _ __    __ _   __ _   ___  _ __");
-                System.out.println(
-                        "| |      / _` || | / _ \\| '_ \\  / _` | / _` || '__| | |\\/| | / _` || '_ \\  / _` | / _` | / _ \\| '__|");
-                System.out.println(
-                        "| |____ | (_| || ||  __/| | | || (_| || (_| || |    | |  | || (_| || | | || (_| || (_| ||  __/| |");
-                System.out.println(
-                        " \\_____| \\__,_||_| \\___||_| |_| \\__,_| \\__,_||_|    |_|  |_| \\__,_||_| |_| \\__,_| \\__, | \\___||_|");
-                System.out.println(
-                        "                                                                                   __/ |");
-                System.out.println(
-                        "                                                                                  |___/");
+                System.out.println("| |       __ _ | |  ___  _ __    __| |  __ _  _ __  | \\  / |  __ _  _ __    __ _   __ _   ___  _ __");
+                System.out.println("| |      / _` || | / _ \\| '_ \\  / _` | / _` || '__| | |\\/| | / _` || '_ \\  / _` | / _` | / _ \\| '__|");
+                System.out.println("| |____ | (_| || ||  __/| | | || (_| || (_| || |    | |  | || (_| || | | || (_| || (_| ||  __/| |");
+                System.out.println(" \\_____| \\__,_||_| \\___||_| |_| \\__,_| \\__,_||_|    |_|  |_| \\__,_||_| |_| \\__,_| \\__, | \\___||_|");
+                System.out.println("                                                                                   __/ |");
+                System.out.println("                                                                                  |___/");
 
                 System.out.println("1 - Se connecter");
                 System.out.println("2 - Créer un compte");
@@ -57,7 +58,8 @@ public class Main {
                                 System.out.print("Mot de passe: ");
                                 String motDePasse = scanner.nextLine();
 
-                                for (int i = 0; i < nbUtilisateurs; i = i + 1) {
+                                for (int i = 0; i < nbUtilisateurs; i++) {
+                                    assert utilisateurs[i] != null;
                                     if (utilisateurs[i].equals(utilisateur) && motsDePasses[i].equals(motDePasse)) {
                                         utilisateur = utilisateurs[i];
                                     }
@@ -122,7 +124,7 @@ public class Main {
                                 LocalDateTime debutMois = LocalDateTime.of(anneeMois, mois, 1, 0, 0);
                                 LocalDateTime finMois = debutMois.plusMonths(1).minusSeconds(1);
 
-                                afficherListe(calendar.eventsDansPeriode(debutMois, finMois));
+                                afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutMois), new DateEvenement(finMois)));
                                 break;
 
                             case "3":
@@ -138,7 +140,7 @@ public class Main {
                                         .withHour(0).withMinute(0);
                                 LocalDateTime finSemaine = debutSemaine.plusDays(7).minusSeconds(1);
 
-                                afficherListe(calendar.eventsDansPeriode(debutSemaine, finSemaine));
+                                afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutSemaine), new DateEvenement(finSemaine)));
                                 break;
 
                             case "4":
@@ -152,13 +154,12 @@ public class Main {
                                 LocalDateTime debutJour = LocalDateTime.of(anneeJour, moisJour, jour, 0, 0);
                                 LocalDateTime finJour = debutJour.plusDays(1).minusSeconds(1);
 
-                                afficherListe(calendar.eventsDansPeriode(debutJour, finJour));
+                                afficherListe(calendar.eventsDansPeriode(new DateEvenement(debutJour), new DateEvenement(finJour)));
                                 break;
                         }
                         break;
 
                     case "2":
-                        // Ajout simplifié d'un RDV personnel
                         System.out.print("Titre de l'événement : ");
                         String titre = scanner.nextLine();
                         System.out.print("Année (AAAA) : ");
@@ -174,15 +175,20 @@ public class Main {
                         System.out.print("Durée (en minutes) : ");
                         int duree = Integer.parseInt(scanner.nextLine());
 
-                        calendar.ajouterEvent("RDV_PERSONNEL", titre, utilisateur,
-                                LocalDateTime.of(annee, moisRdv, jourRdv, heure, minute), duree,
-                                "", "", 0);
+                        TitreEvenement titreEvenement = new TitreEvenement(titre);
+                        ProprietaireEvenement proprietaireEvenement = new ProprietaireEvenement(utilisateur);
+                        DateEvenement dateEvenement = new DateEvenement(LocalDateTime.of(annee, moisRdv, jourRdv, heure, minute));
+                        DureeEvenement dureeEvenement = new DureeEvenement(duree);
+
+                        Event rdvPersonnel = new RdvPersonnel(titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement);
+
+                        calendar.ajouterEvent(rdvPersonnel);
 
                         System.out.println("Événement ajouté.");
                         break;
 
+
                     case "3":
-                        // Ajout simplifié d'une réunion
                         System.out.print("Titre de l'événement : ");
                         String titre2 = scanner.nextLine();
                         System.out.print("Année (AAAA) : ");
@@ -199,26 +205,31 @@ public class Main {
                         int duree2 = Integer.parseInt(scanner.nextLine());
                         System.out.println("Lieu :");
                         String lieu = scanner.nextLine();
-                        
-                        String participants = utilisateur;
-                        
-                        boolean encore = true;
+
+                        List<String> participants = new java.util.ArrayList<>(List.of(utilisateur));
+
                         System.out.println("Ajouter un participant ? (oui / non)");
                         while (scanner.nextLine().equals("oui"))
                         {
                             System.out.print("Participants : " + participants);
-                            participants += ", " + scanner.nextLine();
+                            participants.add(scanner.nextLine());
                         }
 
-                        calendar.ajouterEvent("REUNION", titre2, utilisateur,
-                                LocalDateTime.of(annee2, moisRdv2, jourRdv2, heure2, minute2), duree2,
-                                lieu, participants, 0);
+                        TitreEvenement titreEvenement2 = new TitreEvenement(titre2);
+                        ProprietaireEvenement proprietaireEvenement2 = new ProprietaireEvenement(utilisateur);
+                        DateEvenement dateEvenement2 = new DateEvenement(LocalDateTime.of(annee2, moisRdv2, jourRdv2, heure2, minute2));
+                        DureeEvenement dureeEvenement2 = new DureeEvenement(duree2);
+                        LieuEvenement lieuEvenement = new LieuEvenement(lieu);
+                        ParticipantsEvenement participantsEvenement = new ParticipantsEvenement(participants);
+
+                        Event reunion = new Reunion(titreEvenement2, proprietaireEvenement2, dateEvenement2, dureeEvenement2, lieuEvenement, participantsEvenement);
+
+                        calendar.ajouterEvent(reunion);
 
                         System.out.println("Événement ajouté.");
                         break;
 
-                        case "4":
-                        // Ajout simplifié d'une réunion
+                    case "4":
                         System.out.print("Titre de l'événement : ");
                         String titre3 = scanner.nextLine();
                         System.out.print("Année (AAAA) : ");
@@ -231,12 +242,18 @@ public class Main {
                         int heure3 = Integer.parseInt(scanner.nextLine());
                         System.out.print("Minute début (0-59) : ");
                         int minute3 = Integer.parseInt(scanner.nextLine());
-                        System.out.print("Frequence (en jours) : ");
+                        System.out.print("Fréquence (en jours) : ");
                         int frequence = Integer.parseInt(scanner.nextLine());
 
-                        calendar.ajouterEvent("PERIODIQUE", titre3, utilisateur,
-                                LocalDateTime.of(annee3, moisRdv3, jourRdv3, heure3, minute3), 0,
-                                "", "", frequence);
+                        TitreEvenement titreEvenement3 = new TitreEvenement(titre3);
+                        ProprietaireEvenement proprietaireEvenement3 = new ProprietaireEvenement(utilisateur);
+                        DateEvenement dateEvenement3 = new DateEvenement(LocalDateTime.of(annee3, moisRdv3, jourRdv3, heure3, minute3));
+                        DureeEvenement dureeEvenement3 = new DureeEvenement(0);
+                        FrequenceEvenement frequenceEvenement = new FrequenceEvenement(frequence);
+
+                        Event evenementPeriodique = new EvenementPeriodique(titreEvenement3, proprietaireEvenement3, dateEvenement3, dureeEvenement3, frequenceEvenement);
+
+                        calendar.ajouterEvent(evenementPeriodique);
 
                         System.out.println("Événement ajouté.");
                         break;
