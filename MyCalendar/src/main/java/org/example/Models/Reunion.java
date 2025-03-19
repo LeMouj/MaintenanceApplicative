@@ -6,10 +6,10 @@ public class Reunion extends Event {
     private final LieuEvenement lieu;
     private final ParticipantsEvenement participants;
 
-    public Reunion(TitreEvenement titre, ProprietaireEvenement proprietaire,
+    public Reunion(IdEvenement idEvent, TitreEvenement titre, ProprietaireEvenement proprietaire,
                    DateEvenement dateDebut, DureeEvenement duree,
                    LieuEvenement lieu, ParticipantsEvenement participants) {
-        super(titre, proprietaire, dateDebut, duree);
+        super(idEvent, titre, proprietaire, dateDebut, duree);
         this.lieu = lieu;
         this.participants = participants;
     }

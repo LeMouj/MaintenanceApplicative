@@ -4,9 +4,9 @@ import org.example.ValueObject.*;
 
 public class RdvPersonnel extends Event {
 
-    public RdvPersonnel(TitreEvenement titre, ProprietaireEvenement proprietaire,
+    public RdvPersonnel(IdEvenement idEvent, TitreEvenement titre, ProprietaireEvenement proprietaire,
                         DateEvenement dateDebut, DureeEvenement duree) {
-        super(titre, proprietaire, dateDebut, duree);
+        super(idEvent, titre, proprietaire, dateDebut, duree);
     }
 
     @Override

@@ -9,6 +9,7 @@ import java.time.temporal.WeekFields;
 import java.util.List;
 import java.util.Locale;
 import java.util.Scanner;
+import java.util.UUID;
 
 public class Main {
     public static void main(String[] args) {
@@ -93,7 +94,8 @@ public class Main {
                 System.out.println("2 - Ajouter un rendez-vous perso");
                 System.out.println("3 - Ajouter une réunion");
                 System.out.println("4 - Ajouter un évènement périodique");
-                System.out.println("5 - Se déconnecter");
+                System.out.println("5 - Ajouter un anniversaire");
+                System.out.println("6 - Se déconnecter");
                 System.out.print("Votre choix : ");
 
                 String choix = scanner.nextLine();
@@ -179,8 +181,9 @@ public class Main {
                         ProprietaireEvenement proprietaireEvenement = new ProprietaireEvenement(utilisateur);
                         DateEvenement dateEvenement = new DateEvenement(LocalDateTime.of(annee, moisRdv, jourRdv, heure, minute));
                         DureeEvenement dureeEvenement = new DureeEvenement(duree);
+                        IdEvenement idEvenement = new IdEvenement(UUID.randomUUID());
 
-                        Event rdvPersonnel = new RdvPersonnel(titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement);
+                        Event rdvPersonnel = new RdvPersonnel(idEvenement, titreEvenement, proprietaireEvenement, dateEvenement, dureeEvenement);
 
                         calendar.ajouterEvent(rdvPersonnel);
 
@@ -221,8 +224,9 @@ public class Main {
                         DureeEvenement dureeEvenement2 = new DureeEvenement(duree2);
                         LieuEvenement lieuEvenement = new LieuEvenement(lieu);
                         ParticipantsEvenement participantsEvenement = new ParticipantsEvenement(participants);
+                        IdEvenement idEvenement2 = new IdEvenement(UUID.randomUUID());
 
-                        Event reunion = new Reunion(titreEvenement2, proprietaireEvenement2, dateEvenement2, dureeEvenement2, lieuEvenement, participantsEvenement);
+                        Event reunion = new Reunion(idEvenement2, titreEvenement2, proprietaireEvenement2, dateEvenement2, dureeEvenement2, lieuEvenement, participantsEvenement);
 
                         calendar.ajouterEvent(reunion);
 
@@ -250,12 +254,44 @@ public class Main {
                         DateEvenement dateEvenement3 = new DateEvenement(LocalDateTime.of(annee3, moisRdv3, jourRdv3, heure3, minute3));
                         DureeEvenement dureeEvenement3 = new DureeEvenement(0);
                         FrequenceEvenement frequenceEvenement = new FrequenceEvenement(frequence);
+                        IdEvenement idEvenement3 = new IdEvenement(UUID.randomUUID());
 
-                        Event evenementPeriodique = new EvenementPeriodique(titreEvenement3, proprietaireEvenement3, dateEvenement3, dureeEvenement3, frequenceEvenement);
+                        Event evenementPeriodique = new EvenementPeriodique(idEvenement3, titreEvenement3, proprietaireEvenement3, dateEvenement3, dureeEvenement3, frequenceEvenement);
 
                         calendar.ajouterEvent(evenementPeriodique);
 
                         System.out.println("Événement ajouté.");
+                        break;
+
+                    case "5":
+                        System.out.print("Titre de l'événement : ");
+                        String titreAnniversaire = scanner.nextLine();
+                        System.out.print("Année (AAAA) : ");
+                        int anneeAnniversaire = Integer.parseInt(scanner.nextLine());
+                        System.out.print("Mois (1-12) : ");
+                        int moisAnniversaire = Integer.parseInt(scanner.nextLine());
+                        System.out.print("Jour (1-31) : ");
+                        int jourAnniversaire = Integer.parseInt(scanner.nextLine());
+                        System.out.print("Heure début (0-23) : ");
+                        int heureAnniversaire = Integer.parseInt(scanner.nextLine());
+                        System.out.print("Minute début (0-59) : ");
+                        int minuteAnniversaire = Integer.parseInt(scanner.nextLine());
+                        System.out.print("Nom de la personne célébrée : ");
+                        String personneAnniversaire = scanner.nextLine();
+                        System.out.print("Durée (en minutes) : ");
+                        int dureeAnniversaire = Integer.parseInt(scanner.nextLine());
+
+                        TitreEvenement titreEvenementAnniversaire = new TitreEvenement(titreAnniversaire);
+                        ProprietaireEvenement proprietaireEvenementAnniversaire = new ProprietaireEvenement(utilisateur);
+                        DateEvenement dateEvenementAnniversaire = new DateEvenement(LocalDateTime.of(anneeAnniversaire, moisAnniversaire, jourAnniversaire, heureAnniversaire, minuteAnniversaire));
+                        DureeEvenement dureeEvenementAnniversaire = new DureeEvenement(dureeAnniversaire);
+                        IdEvenement idEvenementAnniversaire = new IdEvenement(UUID.randomUUID());
+
+                        Event anniversaire = new EvenementAnniversaire(idEvenementAnniversaire, titreEvenementAnniversaire, proprietaireEvenementAnniversaire, dateEvenementAnniversaire, dureeEvenementAnniversaire, personneAnniversaire);
+
+                        calendar.ajouterEvent(anniversaire);
+
+                        System.out.println("Événement Anniversaire ajouté.");
                         break;
 
                     default:
