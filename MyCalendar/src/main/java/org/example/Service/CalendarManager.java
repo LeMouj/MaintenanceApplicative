@@ -37,4 +37,8 @@ public class CalendarManager {
     public void afficherEvenements() {
         evenements.getListe().forEach(e -> System.out.println(e.description()));
     }
+
+    public void supprimerEventParId(IdEvenement eventId) {
+        evenements.getListe().removeIf(e -> e.getEventId().equals(eventId));
+    }
 }
