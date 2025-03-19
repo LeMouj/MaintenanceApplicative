@@ -22,5 +22,7 @@ public abstract class Event {
         return dateDebut.valeur().plusMinutes(duree.valeur());
     }
 
+    public DateEvenement getDateDebut() {return dateDebut;}
+
     public abstract String description();
 }

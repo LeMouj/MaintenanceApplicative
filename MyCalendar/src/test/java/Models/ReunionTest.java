@@ -1,5 +1,6 @@
 package Models;
 
+import org.example.Models.Reunion;
 import org.example.ValueObject.*;
 import org.junit.jupiter.api.Test;
 
