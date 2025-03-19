@@ -5,6 +5,7 @@ import org.example.ValueObject.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,6 +14,7 @@ class EvenementPeriodiqueTest {
     @Test
     void shouldCreateValidEvenementPeriodique() {
         EvenementPeriodique evenement = new EvenementPeriodique(
+                new IdEvenement(UUID.randomUUID()),
                 new TitreEvenement("Répétition Chorale"),
                 new ProprietaireEvenement("Jean"),
                 new DateEvenement(LocalDateTime.of(2025, 3, 22, 18, 0)),
@@ -26,6 +28,7 @@ class EvenementPeriodiqueTest {
     @Test
     void shouldCalculateNextOccurrence() {
         EvenementPeriodique evenement = new EvenementPeriodique(
+                new IdEvenement(UUID.randomUUID()),
                 new TitreEvenement("Répétition Chorale"),
                 new ProprietaireEvenement("Jean"),
                 new DateEvenement(LocalDateTime.of(2025, 3, 22, 18, 0)),

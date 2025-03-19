@@ -6,6 +6,7 @@ import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -14,6 +15,7 @@ class ReunionTest {
     @Test
     void shouldCreateValidReunion() {
         Reunion reunion = new Reunion(
+                new IdEvenement(UUID.randomUUID()),
                 new TitreEvenement("Point Hebdo"),
                 new ProprietaireEvenement("Jean"),
                 new DateEvenement(LocalDateTime.of(2025, 3, 21, 10, 0)),

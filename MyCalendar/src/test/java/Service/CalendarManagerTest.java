@@ -8,7 +8,9 @@ import org.example.Service.CalendarManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 class CalendarManagerTest {
 
@@ -28,15 +30,15 @@ class CalendarManagerTest {
         DateEvenement dateRdv = new DateEvenement(LocalDateTime.of(2025, 3, 20, 10, 0));
         DureeEvenement dureeRdv = new DureeEvenement(30);
         LieuEvenement lieuRdv = new LieuEvenement("Hôpital");
-        ParticipantsEvenement participantsRdv = new ParticipantsEvenement("Jean, Marie");
+        ParticipantsEvenement participantsRdv = new ParticipantsEvenement(Collections.singletonList("Jean, Marie"));
 
-        RdvPersonnel rdv = new RdvPersonnel(titreRdv, proprietaireRdv, dateRdv, dureeRdv);
+        RdvPersonnel rdv = new RdvPersonnel(new IdEvenement(UUID.randomUUID()), titreRdv, proprietaireRdv, dateRdv, dureeRdv);
 
         // Ajoutez l'événement au manager
         calendarManager.ajouterEvent(rdv);
 
         // Vérifie que l'événement a été ajouté correctement
-        assertEquals(1, calendarManager.evenements.size());
+        assertEquals(1, calendarManager.getEvenements().size());
     }
 
     // Test la récupération des événements dans une période donnée
@@ -47,15 +49,17 @@ class CalendarManagerTest {
         ProprietaireEvenement proprietaireRdv = new ProprietaireEvenement("Jean Dupont");
         DateEvenement dateRdv = new DateEvenement(LocalDateTime.of(2025, 3, 20, 10, 0));
         DureeEvenement dureeRdv = new DureeEvenement(30);
-        RdvPersonnel rdv = new RdvPersonnel(titreRdv, proprietaireRdv, dateRdv, dureeRdv);
+        RdvPersonnel rdv = new RdvPersonnel(
+                new IdEvenement(UUID.randomUUID()), titreRdv, proprietaireRdv, dateRdv, dureeRdv);
 
         TitreEvenement titreReunion = new TitreEvenement("Réunion d'équipe");
         ProprietaireEvenement proprietaireReunion = new ProprietaireEvenement("Sophie");
         DateEvenement dateReunion = new DateEvenement(LocalDateTime.of(2025, 3, 22, 14, 0));
         DureeEvenement dureeReunion = new DureeEvenement(60);
         LieuEvenement lieuReunion = new LieuEvenement("Bureau");
-        ParticipantsEvenement participantsReunion = new ParticipantsEvenement("Sophie, Paul");
-        Reunion reunion = new Reunion(titreReunion, proprietaireReunion, dateReunion, dureeReunion, lieuReunion, participantsReunion);
+        ParticipantsEvenement participantsReunion = new ParticipantsEvenement(Collections.singletonList("Sophie, Paul"));
+        Reunion reunion = new Reunion(
+                new IdEvenement(UUID.randomUUID()), titreReunion, proprietaireReunion, dateReunion, dureeReunion, lieuReunion, participantsReunion);
 
         // Ajoutez les événements au manager
         calendarManager.ajouterEvent(rdv);
@@ -80,13 +84,15 @@ class CalendarManagerTest {
         ProprietaireEvenement proprietaireRdv = new ProprietaireEvenement("Jean Dupont");
         DateEvenement dateRdv = new DateEvenement(LocalDateTime.of(2025, 3, 20, 10, 0));
         DureeEvenement dureeRdv = new DureeEvenement(30);
-        RdvPersonnel rdv = new RdvPersonnel(titreRdv, proprietaireRdv, dateRdv, dureeRdv);
+        RdvPersonnel rdv = new RdvPersonnel(
+                new IdEvenement(UUID.randomUUID()), titreRdv, proprietaireRdv, dateRdv, dureeRdv);
 
         TitreEvenement titreReunion = new TitreEvenement("Réunion d'équipe");
         ProprietaireEvenement proprietaireReunion = new ProprietaireEvenement("Sophie");
         DateEvenement dateReunion = new DateEvenement(LocalDateTime.of(2025, 3, 20, 10, 15));
         DureeEvenement dureeReunion = new DureeEvenement(60);
-        Reunion reunion = new Reunion(titreReunion, proprietaireReunion, dateReunion, dureeReunion, new LieuEvenement("Bureau"), new ParticipantsEvenement("Sophie, Paul"));
+        Reunion reunion = new Reunion(
+                new IdEvenement(UUID.randomUUID()), titreReunion, proprietaireReunion, dateReunion, dureeReunion, new LieuEvenement("Bureau"), new ParticipantsEvenement(Collections.singletonList("Sophie, Paul")));
 
         // Vérifie qu'il y a un conflit entre les événements
         assertTrue(calendarManager.conflit(rdv, reunion));
@@ -96,7 +102,8 @@ class CalendarManagerTest {
         ProprietaireEvenement proprietaireDejeuner = new ProprietaireEvenement("Jean");
         DateEvenement dateDejeuner = new DateEvenement(LocalDateTime.of(2025, 3, 20, 12, 0));
         DureeEvenement dureeDejeuner = new DureeEvenement(60);
-        RdvPersonnel dejeuner = new RdvPersonnel(titreDejeuner, proprietaireDejeuner, dateDejeuner, dureeDejeuner);
+        RdvPersonnel dejeuner = new RdvPersonnel(
+                new IdEvenement(UUID.randomUUID()), titreDejeuner, proprietaireDejeuner, dateDejeuner, dureeDejeuner);
 
         // Vérifie qu'il n'y a pas de conflit entre le déjeuner et le rendez-vous
         assertFalse(calendarManager.conflit(rdv, dejeuner));
@@ -110,7 +117,8 @@ class CalendarManagerTest {
         ProprietaireEvenement proprietaireRdv = new ProprietaireEvenement("Jean Dupont");
         DateEvenement dateRdv = new DateEvenement(LocalDateTime.of(2025, 3, 20, 10, 0));
         DureeEvenement dureeRdv = new DureeEvenement(30);
-        RdvPersonnel rdv = new RdvPersonnel(titreRdv, proprietaireRdv, dateRdv, dureeRdv);
+        RdvPersonnel rdv = new RdvPersonnel(
+                new IdEvenement(UUID.randomUUID()), titreRdv, proprietaireRdv, dateRdv, dureeRdv);
 
         // Ajoute l'événement au manager
         calendarManager.ajouterEvent(rdv);

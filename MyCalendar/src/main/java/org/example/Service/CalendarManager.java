@@ -41,4 +41,6 @@ public class CalendarManager {
     public void supprimerEventParId(IdEvenement eventId) {
         evenements.getListe().removeIf(e -> e.getEventId().equals(eventId));
     }
+
+    public Evenements getEvenements() {return evenements;}
 }

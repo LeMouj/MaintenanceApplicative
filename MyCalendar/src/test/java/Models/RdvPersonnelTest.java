@@ -5,6 +5,7 @@ import org.example.ValueObject.*;
 import org.junit.jupiter.api.Test;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -13,6 +14,7 @@ class RdvPersonnelTest {
     @Test
     void shouldCreateValidRdvPersonnel() {
         RdvPersonnel rdv = new RdvPersonnel(
+                new IdEvenement(UUID.randomUUID()),
                 new TitreEvenement("Dentiste"),
                 new ProprietaireEvenement("Jean"),
                 new DateEvenement(LocalDateTime.of(2025, 3, 20, 14, 30)),
